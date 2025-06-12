@@ -97,9 +97,20 @@ function consultar() {
 
       const colunas = Object.keys(res.dados[0]);
       const dadosTabela = res.dados.map(linha =>
-        colunas.map(c =>
-          c.toLowerCase().includes('link') ? `<a href="${linha[c]}" target="_blank">🔗</a>` : linha[c]
-        )
+        colunas.map(c => {
+          if (c.toLowerCase().includes('link')) {
+            return `<a href="${linha[c]}" target="_blank">🔗</a>`;
+          } else if (c.toLowerCase().includes('status')) {
+            return linha[c] === '🟩' ? '🟩' :
+                   linha[c] === '🟥' ? '🟥' :
+                   linha[c] === '🟥🟥' ? '🟥🟥' :
+                   linha[c] === '🟥🟥🟥' ? '🟥🟥🟥' :
+                   linha[c] === '🟦' ? '🟦' :
+                   linha[c];
+          } else {
+            return linha[c];
+          }
+        })
       );
 
       const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
@@ -133,18 +144,15 @@ function consultar() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const anotacoesSalvas = localStorage.getItem("anotacoes_volume");
-  if (an<!-- Continuação final do script -->
-document.addEventListener('DOMContentLoaded', () => {
-  const anotacoesSalvas = localStorage.getItem("anotacoes_volume");
   if (anotacoesSalvas) {
     document.getElementById("anotacoes").value = anotacoesSalvas;
   }
-});
 
-document.getElementById("anotacoes").addEventListener("input", function () {
-  localStorage.setItem("anotacoes_volume", this.value);
+  document.getElementById("anotacoes").addEventListener("input", function () {
+    localStorage.setItem("anotacoes_volume", this.value);
+  });
 });
 </script>
 
 </body>
-</html>
+  </html>
