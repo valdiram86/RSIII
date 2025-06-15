@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel – Oportunidade de Volume</title>
+  <title>Painel – Scanner de Criptos</title>
 
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
@@ -22,13 +22,16 @@
 <body>
 
 <div id="intro">
-  <h2>📊 Painel – Oportunidade de Volume</h2>
-  <p><strong>Identificando criptos subvalorizadas com volume crescente.</strong></p>
-  <p>Este painel exibe moedas que caíram nos últimos dias, mas estão mostrando sinais de recuperação com alto volume.</p>
-  <p><strong>WhatsApp para dúvidas:</strong> <a href="https://wa.me/5521982252303" target="_blank">5521982252303</a></p>
+  <h2>📊 Painel – Scanner de Criptos</h2>
+  <p>Escolha a aba desejada e digite seu e-mail para ver os dados.</p>
 </div>
 
-<input type="email" id="email" placeholder="Digite seu e-mail autorizado">
+<input type="email" id="email" placeholder="Digite seu e-mail autorizado"><br><br>
+<select id="aba">
+  <option value="OportunidadeDeVirada">🟩 Oportunidade de Virada</option>
+  <option value="OportunidadeDeVolume">📈 Oportunidade de Volume</option>
+</select>
+<br><br>
 <button onclick="consultar()">Exibir Oportunidades</button>
 <p id="mensagem"></p>
 
@@ -46,16 +49,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03IWvBEe4Wt6A4syxRBx_lBVcWy7DGV589rSBEQ2eFq2ggm/exec?aba=OportunidadeDeVolume';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03IWvBEe4Wt6A4syxRBx_lBVcWy7DGV589rSBEQ2eFq2ggm/exec';
 
 function consultar() {
   const email = document.getElementById("email").value.trim();
+  const aba = document.getElementById("aba").value;
   if (!email) {
     document.getElementById("mensagem").textContent = "Informe o e-mail.";
     return;
   }
 
-  fetch(`${API_URL}&email=${encodeURIComponent(email)}`, { cache: "no-store" })
+  fetch(`${BASE_URL}?aba=${aba}&email=${encodeURIComponent(email)}`, { cache: "no-store" })
     .then(r => r.json())
     .then(res => {
       if (!res.autorizado || !res.dados || res.dados.length === 0) {
@@ -88,22 +92,26 @@ function consultar() {
         columns: colunas.map(c => ({ title: c })),
         dom: 'Bfrtip',
         buttons: [
-          { extend: 'csvHtml5', title: `OportunidadeVolume-${dataHoje}` },
-          { extend: 'excelHtml5', title: `OportunidadeVolume-${dataHoje}` }
+          { extend: 'csvHtml5', title: `${aba}-${dataHoje}` },
+          { extend: 'excelHtml5', title: `${aba}-${dataHoje}` }
         ],
         paging: false,
         scrollX: true
       });
 
-      document.getElementById("contador").textContent = `Total de oportunidades: ${res.dados.length}`;
+      document.getElementById("contador").textContent = `Total de moedas: ${res.dados.length}`;
 
-      // Exibir os 10 maiores volumes
-      const top = [...res.dados]
-        .sort((a, b) => parseFloat(b["Volume"]) - parseFloat(a["Volume"]))
-        .slice(0, 10)
-        .map((d, i) => `<p><strong>🔥 Destaque #${i + 1}:</strong> ${d["Símbolo"]} – Volume: $${d["Volume"]}</p>`)
-        .join('');
-      document.getElementById("destaques").innerHTML = top;
+      // Destaques de maior volume (se existir a coluna Volume)
+      let destaqueHtml = '';
+      if (colunas.includes("Volume")) {
+        const top = [...res.dados]
+          .sort((a, b) => parseFloat(b["Volume"]) - parseFloat(a["Volume"]))
+          .slice(0, 10)
+          .map((d, i) => `<p><strong>🔥 Destaque #${i + 1}:</strong> ${d["Símbolo"]} – Volume: $${d["Volume"]}</p>`)
+          .join('');
+        destaqueHtml = top;
+      }
+      document.getElementById("destaques").innerHTML = destaqueHtml;
     })
     .catch(err => {
       console.error(err);
