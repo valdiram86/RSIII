@@ -110,10 +110,10 @@ function consultar(aba) {
 
       const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
 
-      // ✅ LIMPA tabela antiga antes de recriar
+      // ✅ FORÇA destruição total da tabela antiga
       if ($.fn.DataTable.isDataTable('#tabela')) {
-        $('#tabela').DataTable().destroy();
-        $('#tabela').empty();
+        $('#tabela').DataTable().clear().destroy();
+        document.getElementById("tabela").innerHTML = "";
       }
 
       $('#tabela').DataTable({
