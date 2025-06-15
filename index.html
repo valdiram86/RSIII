@@ -13,17 +13,20 @@
     #mensagem { font-weight: bold; color: red; margin-top: 10px; }
     #contador { font-weight: bold; margin: 15px 0 10px 0; }
     table { background: white; width: 100%; }
-    /* ... seu estilo permanece o mesmo ... */
   </style>
 </head>
 <body>
 
+<h2>📊 Painel Técnico – Scanner Cripto</h2>
+
 <input type="email" id="email" placeholder="Digite seu e‑mail autorizado">
-<button onclick="consultar('OportunidadeDeVirada')">📈 Virada</button>
-<button onclick="consultar('OportunidadeDeVolume')">📊 Volume</button>
+<br><br>
+<button onclick="consultar('OportunidadeDeVirada')">📈 Oportunidade de Virada</button>
+<button onclick="consultar('OportunidadeDeVolume')">📊 Oportunidade de Volume</button>
 <p id="mensagem"></p>
 
 <div id="destaques"></div>
+
 <div id="painel" style="display:none">
   <p id="contador"></p>
   <table id="tabela" class="display nowrap"></table>
@@ -46,23 +49,16 @@ function consultar(aba) {
   }
 
   document.getElementById("mensagem").textContent = "Consultando ...";
-  
+
   fetch(`${BASE_URL}?aba=${aba}&email=${encodeURIComponent(email)}`, { cache: "no-store" })
     .then(r => r.json())
     .then(res => {
-      console.log("👉 JSON recebido:", res); // VERIFICAÇÃO: veja no Console do navegador
-
       if (!res.autorizado) {
         document.getElementById("mensagem").textContent = "Acesso negado.";
         return;
       }
 
-      const totalDados = res.dados.length;
-      document.getElementById("mensagem").textContent = "";
-      document.getElementById("contador").textContent = `Total de moedas: ${totalDados}`;
-      document.getElementById("painel").style.display = "block";
-
-      const colunas = Object.keys(res.dados[0] || {});
+      const colunas = Object.keys(res.dados[0]);
       const dadosTabela = res.dados.map(item =>
         colunas.map(c => c.toLowerCase().includes('link')
           ? `<a href="${item[c]}" target="_blank">🔗</a>`
@@ -89,22 +85,23 @@ function consultar(aba) {
         destroy: true
       });
 
-      const top10 = [...res.dados]
-        .sort((a, b) => aba === 'OportunidadeDeVolume'
-          ? parseFloat(b.Volume) - parseFloat(a.Volume)
-          : parseFloat(b.RSI) - parseFloat(a.RSI)
-        ).slice(0, 10);
+      document.getElementById("painel").style.display = "block";
+      document.getElementById("mensagem").textContent = "";
+      document.getElementById("contador").textContent = `Total: ${res.dados.length} moedas`;
 
-      let destaquesHTML = `<p><strong>💡 Destaques – ${aba.replace('OportunidadeDe', '')}:</strong></p>`;
-      top10.forEach((d, i) => {
-        const val = aba === 'OportunidadeDeVolume' ? d.Volume : d.RSI;
-        destaquesHTML += `<p>🔹 #${i + 1} ${d.Símbolo} – ${val}</p>`;
-      });
-      document.getElementById("destaques").innerHTML = destaquesHTML;
+      const destaque = aba === 'OportunidadeDeVolume'
+        ? [...res.dados].sort((a, b) => parseFloat(b.Volume) - parseFloat(a.Volume))
+        : [...res.dados].sort((a, b) => parseFloat(b.RSI) - parseFloat(a.RSI));
+
+      const top = destaque.slice(0, 10).map((d, i) => {
+        const info = aba === 'OportunidadeDeVolume' ? d.Volume : d.RSI;
+        return `<p>🔹 #${i + 1} ${d.Símbolo} – ${info}</p>`;
+      }).join('');
+
+      document.getElementById("destaques").innerHTML = `<strong>💡 Destaques:</strong>${top}`;
     })
-    .catch(err => {
-      console.error(err);
-      document.getElementById("mensagem").textContent = "Erro ao consultar. Veja console.";
+    .catch(() => {
+      document.getElementById("mensagem").textContent = "Erro ao consultar dados.";
     });
 }
 </script>
