@@ -2,122 +2,84 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel – Scanner de Criptos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📊 Painel Cripto – Scanner de Oportunidades</title>
 
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
-
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"/>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; zoom: 90%; }
-    h2 { margin-bottom: 10px; }
-    #intro { background: #fff; padding: 15px; border-left: 5px solid #0073e6; margin-bottom: 20px; }
-    table { width: 100%; background: white; }
-    textarea { width: 100%; padding: 10px; margin-top: 10px; font-size: 14px; }
-    #painel { margin-top: 20px; overflow-x: auto; display: none; }
-    #mensagem { font-weight: bold; color: red; }
-    #destaques { margin-top: 15px; background: #e6f7ff; padding: 10px; border: 1px solid #0073e6; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+      zoom: 90%;
+    }
+    h2 {
+      margin-top: 40px;
+      font-size: 20px;
+    }
+    table {
+      width: 100%;
+      font-size: 13px;
+      background: white;
+    }
+    .dataTables_wrapper {
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 0 10px #ccc;
+      background: white;
+    }
   </style>
 </head>
 <body>
 
-<div id="intro">
-  <h2>📊 Painel – Scanner de Criptos</h2>
-  <p>Escolha a aba desejada e digite seu e-mail para ver os dados.</p>
-</div>
+<h2>📈 Oportunidade de Volume</h2>
+<table id="tabelaVolume" class="display nowrap"></table>
 
-<input type="email" id="email" placeholder="Digite seu e-mail autorizado"><br><br>
-<select id="aba">
-  <option value="OportunidadeDeVirada">🟩 Oportunidade de Virada</option>
-  <option value="OportunidadeDeVolume">📈 Oportunidade de Volume</option>
-</select>
-<br><br>
-<button onclick="consultar()">Exibir Oportunidades</button>
-<p id="mensagem"></p>
+<h2>📉 Oportunidade de Virada</h2>
+<table id="tabelaVirada" class="display nowrap"></table>
 
-<div id="destaques"></div>
-
-<div id="painel">
-  <p id="contador"></p>
-  <table id="tabela" class="display nowrap"></table>
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.68/vfs_fonts.js"></script>
 
 <script>
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03IWvBEe4Wt6A4syxRBx_lBVcWy7DGV589rSBEQ2eFq2ggm/exec';
+const EMAIL = "matrixreversalscanner@gmail.com";
+const BASE_URL = "https://script.google.com/macros/s/AKfycbyqo0MorasaYLBb53vLQ_T1m2xACdvVni3H8lg0FdfXRE14bRVqWKcwTGwVh1NdBjaX/exec";
 
-function consultar() {
-  const email = document.getElementById("email").value.trim();
-  const aba = document.getElementById("aba").value;
-  if (!email) {
-    document.getElementById("mensagem").textContent = "Informe o e-mail.";
-    return;
-  }
+function carregarTabela(aba, tabelaId) {
+  const url = `${BASE_URL}?email=${EMAIL}&aba=${encodeURIComponent(aba)}`;
 
-  fetch(`${BASE_URL}?aba=${aba}&email=${encodeURIComponent(email)}`, { cache: "no-store" })
-    .then(r => r.json())
-    .then(res => {
-      if (!res.autorizado || !res.dados || res.dados.length === 0) {
-        document.getElementById("mensagem").textContent = "Acesso negado ou nenhum dado encontrado.";
+  fetch(url)
+    .then(response => response.json())
+    .then(json => {
+      if (!json.autorizado) {
+        document.getElementById(tabelaId).outerHTML = "<p style='color:red'>⛔ Acesso negado para esta aba</p>";
         return;
       }
 
-      document.getElementById("mensagem").textContent = "";
-      document.getElementById("painel").style.display = "block";
-
-      const colunas = Object.keys(res.dados[0]);
-      const dadosTabela = res.dados.map(linha =>
-        colunas.map(c => {
-          if (c.toLowerCase().includes('link')) {
-            return `<a href="${linha[c]}" target="_blank">🔗</a>`;
-          } else {
-            return linha[c];
-          }
-        })
-      );
-
-      if ($.fn.DataTable.isDataTable('#tabela')) {
-        $('#tabela').DataTable().clear().destroy();
-        document.getElementById("tabela").innerHTML = "";
-      }
-
-      const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-      $('#tabela').DataTable({
-        data: dadosTabela,
-        columns: colunas.map(c => ({ title: c })),
+      const colunas = Object.keys(json.dados[0]).map(col => ({ title: col, data: col }));
+      $(`#${tabelaId}`).DataTable({
+        data: json.dados,
+        columns: colunas,
         dom: 'Bfrtip',
-        buttons: [
-          { extend: 'csvHtml5', title: `${aba}-${dataHoje}` },
-          { extend: 'excelHtml5', title: `${aba}-${dataHoje}` }
-        ],
+        buttons: ['csv', 'pdf'],
         paging: false,
         scrollX: true
       });
-
-      document.getElementById("contador").textContent = `Total de moedas: ${res.dados.length}`;
-
-      // Destaques de maior volume (se existir a coluna Volume)
-      let destaqueHtml = '';
-      if (colunas.includes("Volume")) {
-        const top = [...res.dados]
-          .sort((a, b) => parseFloat(b["Volume"]) - parseFloat(a["Volume"]))
-          .slice(0, 10)
-          .map((d, i) => `<p><strong>🔥 Destaque #${i + 1}:</strong> ${d["Símbolo"]} – Volume: $${d["Volume"]}</p>`)
-          .join('');
-        destaqueHtml = top;
-      }
-      document.getElementById("destaques").innerHTML = destaqueHtml;
     })
-    .catch(err => {
-      console.error(err);
-      document.getElementById("mensagem").textContent = "Erro ao consultar dados.";
+    .catch(() => {
+      document.getElementById(tabelaId).outerHTML = "<p style='color:red'>⚠️ Erro ao carregar dados.</p>";
     });
 }
+
+carregarTabela('OportunidadeVolume', 'tabelaVolume');
+carregarTabela('OportunidadeDeVirada', 'tabelaVirada');
 </script>
 
 </body>
