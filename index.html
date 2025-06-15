@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel – Oportunidade de Virada</title>
+  <title>Painel – Scanner Cripto</title>
 
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
@@ -14,21 +14,20 @@
     #intro {
       background: #ffffff;
       padding: 15px;
-      border-left: 6px solid #006400;
+      border-left: 6px solid #004080;
       margin-bottom: 20px;
     }
     input, button {
       padding: 10px;
       font-size: 16px;
-      margin-bottom: 8px;
-      width: 100%;
-      max-width: 320px;
+      margin: 5px 5px 10px 0;
+      max-width: 280px;
     }
     #mensagem { font-weight: bold; color: red; }
     #contador { font-weight: bold; margin: 15px 0 10px 0; }
     #painel { margin-top: 20px; overflow-x: auto; }
     table { background: white; width: 100%; }
-    #destaques { background: #e6ffe6; border: 1px solid #009900; padding: 10px; margin-bottom: 15px; }
+    #destaques { background: #e6f7ff; border: 1px solid #0073e6; padding: 10px; margin-bottom: 15px; }
     #destaques p { margin: 5px 0; }
     #blocoNotas { margin-top: 25px; }
     #blocoNotas textarea {
@@ -44,23 +43,24 @@
 <body>
 
 <div id="intro">
-  <h2>📈 Painel – Oportunidade de Virada</h2>
-  <p><strong>Monitorando criptomoedas com sinais técnicos de reversão positiva.</strong></p>
-  <p>Este painel destaca ativos com RSI elevado, bom volume e desempenho em múltiplos prazos, mesmo após quedas recentes.</p>
+  <h2>📊 Painel Técnico – Scanner Cripto</h2>
+  <p><strong>Explore as melhores oportunidades com base em RSI, volume e variação.</strong></p>
   <p><strong>WhatsApp para dúvidas:</strong> 📲 <a href="https://wa.me/5521982252303" target="_blank">552198225-2303</a></p>
 </div>
 
 <input type="email" id="email" placeholder="Digite seu e-mail autorizado">
-<button onclick="consultar()">Exibir Oportunidades</button>
+<br>
+<button onclick="consultar('OportunidadeDeVirada')">📈 Oportunidade de Virada</button>
+<button onclick="consultar('OportunidadeDeVolume')">📊 Oportunidade de Volume</button>
 <p id="mensagem"></p>
 
 <div id="destaques">
-  <p><strong>💡 Top criptos em potencial reversão:</strong></p>
+  <p><strong>💡 Destaques:</strong></p>
 </div>
 
 <div id="blocoNotas">
   <h3>📝 Anotações Pessoais</h3>
-  <textarea id="anotacoes" rows="6" placeholder="Escreva aqui suas observações sobre as criptos..."></textarea>
+  <textarea id="anotacoes" rows="6" placeholder="Escreva aqui suas observações..."></textarea>
 </div>
 
 <div id="painel" style="display:none">
@@ -75,16 +75,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03IWvBEe4Wt6A4syxRBx_lBVcWy7DGV589rSBEQ2eFq2ggm/exec?aba=OportunidadeDeVirada';
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03IWvBEe4Wt6A4syxRBx_lBVcWy7DGV589rSBEQ2eFq2ggm/exec';
 
-function consultar() {
+function consultar(aba) {
   const email = document.getElementById("email").value.trim();
   if (!email) {
     document.getElementById("mensagem").textContent = "Informe o e-mail.";
     return;
   }
 
-  fetch(`${API_URL}&email=${encodeURIComponent(email)}`)
+  document.getElementById("mensagem").textContent = "Consultando...";
+  fetch(`${BASE_URL}?aba=${aba}&email=${encodeURIComponent(email)}`)
     .then(r => r.json())
     .then(res => {
       if (!res.autorizado) {
@@ -100,13 +101,6 @@ function consultar() {
         colunas.map(c => {
           if (c.toLowerCase().includes('link')) {
             return `<a href="${linha[c]}" target="_blank">🔗</a>`;
-          } else if (c.toLowerCase().includes('status')) {
-            return linha[c] === '🟩' ? '🟩' :
-                   linha[c] === '🟥' ? '🟥' :
-                   linha[c] === '🟥🟥' ? '🟥🟥' :
-                   linha[c] === '🟥🟥🟥' ? '🟥🟥🟥' :
-                   linha[c] === '🟦' ? '🟦' :
-                   linha[c];
           } else {
             return linha[c];
           }
@@ -120,8 +114,8 @@ function consultar() {
         destroy: true,
         dom: 'Bfrtip',
         buttons: [
-          { extend: 'csvHtml5', title: `OportunidadeDeVirada-${dataHoje}` },
-          { extend: 'excelHtml5', title: `OportunidadeDeVirada-${dataHoje}` }
+          { extend: 'csvHtml5', title: `${aba}-${dataHoje}` },
+          { extend: 'excelHtml5', title: `${aba}-${dataHoje}` }
         ],
         scrollX: true,
         paging: false,
@@ -130,12 +124,19 @@ function consultar() {
 
       document.getElementById("contador").textContent = `Total de oportunidades listadas: ${res.dados.length}`;
 
-      const top = [...res.dados]
-        .sort((a, b) => parseFloat(b["RSI"]) - parseFloat(a["RSI"]))
-        .slice(0, 10)
-        .map((d, i) => `<p><strong>🔥 Reversão #${i + 1}:</strong> ${d["Símbolo"]} – RSI: ${d["RSI"]}</p>`)
-        .join('');
-      document.getElementById("destaques").innerHTML += top;
+      const destaque = aba === 'OportunidadeDeVolume'
+        ? [...res.dados].sort((a, b) => parseFloat(b["Volume"]) - parseFloat(a["Volume"]))
+        : [...res.dados].sort((a, b) => parseFloat(b["RSI"]) - parseFloat(a["RSI"]));
+
+      const top = destaque.slice(0, 10).map((d, i) => {
+        const destaqueInfo = aba === 'OportunidadeDeVolume'
+          ? `Volume: $${d["Volume"]}`
+          : `RSI: ${d["RSI"]}`;
+        return `<p><strong>🔥 Destaque #${i + 1}:</strong> ${d["Símbolo"]} – ${destaqueInfo}</p>`;
+      }).join('');
+
+      document.getElementById("destaques").innerHTML = `
+        <p><strong>💡 Destaques – ${aba.replace('OportunidadeDe', '')}:</strong></p>` + top;
     })
     .catch(() => {
       document.getElementById("mensagem").textContent = "Erro ao consultar dados.";
@@ -143,13 +144,13 @@ function consultar() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const anotacoesSalvas = localStorage.getItem("anotacoes_virada");
+  const anotacoesSalvas = localStorage.getItem("anotacoes_painel");
   if (anotacoesSalvas) {
     document.getElementById("anotacoes").value = anotacoesSalvas;
   }
 
   document.getElementById("anotacoes").addEventListener("input", function () {
-    localStorage.setItem("anotacoes_virada", this.value);
+    localStorage.setItem("anotacoes_painel", this.value);
   });
 });
 </script>
