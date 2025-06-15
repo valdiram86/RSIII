@@ -9,18 +9,31 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
 
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; zoom: 90%; }
-    #mensagem { font-weight: bold; color: red; margin-top: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      zoom: 90%;
+    }
+    h2 { margin-bottom: 10px; }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px 10px 10px 0;
+    }
+    #mensagem { font-weight: bold; color: red; }
     #contador { font-weight: bold; margin: 15px 0 10px 0; }
+    #painel { margin-top: 20px; overflow-x: auto; }
     table { background: white; width: 100%; }
+    #destaques { margin-top: 10px; background: #e6f7ff; padding: 10px; }
   </style>
 </head>
 <body>
 
-<h2>📊 Painel Técnico – Scanner Cripto</h2>
+<h2>📊 Painel – Scanner Cripto</h2>
 
-<input type="email" id="email" placeholder="Digite seu e‑mail autorizado">
-<br><br>
+<input type="email" id="email" placeholder="Digite seu e-mail autorizado" />
+<br>
 <button onclick="consultar('OportunidadeDeVirada')">📈 Oportunidade de Virada</button>
 <button onclick="consultar('OportunidadeDeVolume')">📊 Oportunidade de Volume</button>
 <p id="mensagem"></p>
@@ -44,11 +57,11 @@ const BASE_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03
 function consultar(aba) {
   const email = document.getElementById("email").value.trim();
   if (!email) {
-    document.getElementById("mensagem").textContent = "Informe o e‑mail.";
+    document.getElementById("mensagem").textContent = "Informe o e-mail.";
     return;
   }
 
-  document.getElementById("mensagem").textContent = "Consultando ...";
+  document.getElementById("mensagem").textContent = "Consultando...";
 
   fetch(`${BASE_URL}?aba=${aba}&email=${encodeURIComponent(email)}`, { cache: "no-store" })
     .then(r => r.json())
@@ -59,18 +72,21 @@ function consultar(aba) {
       }
 
       const colunas = Object.keys(res.dados[0]);
-      const dadosTabela = res.dados.map(item =>
-        colunas.map(c => c.toLowerCase().includes('link')
-          ? `<a href="${item[c]}" target="_blank">🔗</a>`
-          : item[c]
-        )
+      const dadosTabela = res.dados.map(linha =>
+        colunas.map(c => {
+          return c.toLowerCase().includes('link')
+            ? `<a href="${linha[c]}" target="_blank">🔗</a>`
+            : linha[c];
+        })
       );
 
+      // 🔁 Limpa tabela antiga
       if ($.fn.DataTable.isDataTable('#tabela')) {
         $('#tabela').DataTable().clear().destroy();
         document.getElementById("tabela").innerHTML = "";
       }
 
+      // 🧠 Cria nova tabela
       $('#tabela').DataTable({
         data: dadosTabela,
         columns: colunas.map(c => ({ title: c })),
@@ -87,8 +103,9 @@ function consultar(aba) {
 
       document.getElementById("painel").style.display = "block";
       document.getElementById("mensagem").textContent = "";
-      document.getElementById("contador").textContent = `Total: ${res.dados.length} moedas`;
+      document.getElementById("contador").textContent = `Total de moedas: ${res.dados.length}`;
 
+      // 🔝 Destaques
       const destaque = aba === 'OportunidadeDeVolume'
         ? [...res.dados].sort((a, b) => parseFloat(b.Volume) - parseFloat(a.Volume))
         : [...res.dados].sort((a, b) => parseFloat(b.RSI) - parseFloat(a.RSI));
