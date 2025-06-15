@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel – Oportunidade de Volume</title>
+  <title>Painel – Oportunidade de Virada</title>
 
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
@@ -14,7 +14,7 @@
     #intro {
       background: #ffffff;
       padding: 15px;
-      border-left: 6px solid #004080;
+      border-left: 6px solid #006400;
       margin-bottom: 20px;
     }
     input, button {
@@ -28,7 +28,7 @@
     #contador { font-weight: bold; margin: 15px 0 10px 0; }
     #painel { margin-top: 20px; overflow-x: auto; }
     table { background: white; width: 100%; }
-    #destaques { background: #e6f7ff; border: 1px solid #0073e6; padding: 10px; margin-bottom: 15px; }
+    #destaques { background: #e6ffe6; border: 1px solid #009900; padding: 10px; margin-bottom: 15px; }
     #destaques p { margin: 5px 0; }
     #blocoNotas { margin-top: 25px; }
     #blocoNotas textarea {
@@ -44,9 +44,9 @@
 <body>
 
 <div id="intro">
-  <h2>📊 Painel – Oportunidade de Volume</h2>
-  <p><strong>Identificando criptos subvalorizadas com volume crescente.</strong></p>
-  <p>Este painel rastreia moedas que caíram nos períodos recentes (1D, 7D, 30D), mas que estão mostrando sinais de recuperação com aumento de volume.</p>
+  <h2>📈 Painel – Oportunidade de Virada</h2>
+  <p><strong>Monitorando criptomoedas com sinais técnicos de reversão positiva.</strong></p>
+  <p>Este painel destaca ativos com RSI elevado, bom volume e desempenho em múltiplos prazos, mesmo após quedas recentes.</p>
   <p><strong>WhatsApp para dúvidas:</strong> 📲 <a href="https://wa.me/5521982252303" target="_blank">552198225-2303</a></p>
 </div>
 
@@ -55,7 +55,7 @@
 <p id="mensagem"></p>
 
 <div id="destaques">
-  <p><strong>💡 Top moedas com maior volume entre as subvalorizadas:</strong></p>
+  <p><strong>💡 Top criptos em potencial reversão:</strong></p>
 </div>
 
 <div id="blocoNotas">
@@ -75,7 +75,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbxGoam-GEmTCcAFdG8Kjs1Rwc6C48KCCme0_2qikZBgrcH6vUjiF2Znavx0PuU5KFuY/exec?aba=OportunidadeVolume';
+const API_URL = 'https://script.google.com/macros/s/AKfycbx8xRY_y7QYj5WjQx7ku03IWvBEe4Wt6A4syxRBx_lBVcWy7DGV589rSBEQ2eFq2ggm/exec?aba=OportunidadeDeVirada';
 
 function consultar() {
   const email = document.getElementById("email").value.trim();
@@ -120,8 +120,8 @@ function consultar() {
         destroy: true,
         dom: 'Bfrtip',
         buttons: [
-          { extend: 'csvHtml5', title: `OportunidadeVolume-${dataHoje}` },
-          { extend: 'excelHtml5', title: `OportunidadeVolume-${dataHoje}` }
+          { extend: 'csvHtml5', title: `OportunidadeDeVirada-${dataHoje}` },
+          { extend: 'excelHtml5', title: `OportunidadeDeVirada-${dataHoje}` }
         ],
         scrollX: true,
         paging: false,
@@ -131,9 +131,9 @@ function consultar() {
       document.getElementById("contador").textContent = `Total de oportunidades listadas: ${res.dados.length}`;
 
       const top = [...res.dados]
-        .sort((a, b) => parseFloat(b["Volume"]) - parseFloat(a["Volume"]))
+        .sort((a, b) => parseFloat(b["RSI"]) - parseFloat(a["RSI"]))
         .slice(0, 10)
-        .map((d, i) => `<p><strong>🔥 Destaque #${i + 1}:</strong> ${d["Símbolo"]} – Volume: $${d["Volume"]}</p>`)
+        .map((d, i) => `<p><strong>🔥 Reversão #${i + 1}:</strong> ${d["Símbolo"]} – RSI: ${d["RSI"]}</p>`)
         .join('');
       document.getElementById("destaques").innerHTML += top;
     })
@@ -143,16 +143,16 @@ function consultar() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const anotacoesSalvas = localStorage.getItem("anotacoes_volume");
+  const anotacoesSalvas = localStorage.getItem("anotacoes_virada");
   if (anotacoesSalvas) {
     document.getElementById("anotacoes").value = anotacoesSalvas;
   }
 
   document.getElementById("anotacoes").addEventListener("input", function () {
-    localStorage.setItem("anotacoes_volume", this.value);
+    localStorage.setItem("anotacoes_virada", this.value);
   });
 });
 </script>
 
 </body>
-  </html>
+</html>
